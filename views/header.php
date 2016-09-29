@@ -21,10 +21,6 @@
 					<li><a href="./">Download</a></li>
 					<li><a href="./list.php?type=v">List of videos</a></li>
 					<li><a href="./list.php?type=m">List of songs</a></li>
-					<?php
-						if($session->is_logged_in())
-						{
-					?>
 					<li class="dropdown">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
 							<?php if(Downloader::background_jobs() > 0) echo "<b>"; ?>Background downloads : <?php echo Downloader::background_jobs()." / ".Downloader::max_background_jobs(); if(Downloader::background_jobs() > 0) echo "</b>"; ?> <span class="caret"></span></a>
@@ -55,17 +51,9 @@
 							?>
 						</ul>
 					</li>
-					<?php
-						}
-					?>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
-					<?php
-						if($session->is_logged_in())
-						{
-							echo "<li><a href=\"./logout.php\">Logout</a></li>";
-						}
-					?>
+
 				</ul>
 			</div>
 		</div>

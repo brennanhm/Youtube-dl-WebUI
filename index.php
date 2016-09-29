@@ -1,39 +1,30 @@
 <?php
-	require_once 'class/Session.php';
 	require_once 'class/Downloader.php';
 	require_once 'class/FileHandler.php';
 
-	$session = Session::getInstance();
 	$file = new FileHandler;
 
 	require 'views/header.php';
 
-	if(!$session->is_logged_in())
+	if(isset($_GET['kill']) && !empty($_GET['kill']) && $_GET['kill'] === "all")
 	{
-		header("Location: login.php");
+		Downloader::kill_them_all();
 	}
-	else
+
+	if(isset($_POST['urls']) && !empty($_POST['urls']))
 	{
-		if(isset($_GET['kill']) && !empty($_GET['kill']) && $_GET['kill'] === "all")
+		$audio_only = false;
+
+		if(isset($_POST['audio']) && !empty($_POST['audio']))
 		{
-			Downloader::kill_them_all();
+			$audio_only = true;
 		}
 
-		if(isset($_POST['urls']) && !empty($_POST['urls']))
+		$downloader = new Downloader($_POST['urls'], $audio_only);
+		
+		if(!isset($_SESSION['errors']))
 		{
-			$audio_only = false;
-
-			if(isset($_POST['audio']) && !empty($_POST['audio']))
-			{
-				$audio_only = true;
-			}
-
-			$downloader = new Downloader($_POST['urls'], $audio_only);
-			
-			if(!isset($_SESSION['errors']))
-			{
-				header("Location: index.php");
-			}
+			header("Location: index.php");
 		}
 	}
 ?>

@@ -1,15 +1,8 @@
 <?php
-	require_once 'class/Session.php';
 	require_once 'class/Downloader.php';
 	require_once 'class/FileHandler.php';
 
-	$session = Session::getInstance();
 	$file = new FileHandler;
-
-	if(!$session->is_logged_in())
-	{
-		header("Location: login.php");
-	}
 
 	if(isset($_GET['type']) && !empty($_GET['type']))
 	{
@@ -26,7 +19,7 @@
 		}
 	}
 
-	if($session->is_logged_in() && isset($_GET["delete"]))
+	if(isset($_GET["delete"]))
 	{
 		$file->delete($_GET["delete"], $t);
 		header("Location: list.php?type=".$t);
