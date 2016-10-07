@@ -4,48 +4,65 @@ $(document).ready(function() {
 		$("#invalidurl").hide();
 		var vidurl = $("#url").val();
 		if(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/|www\.)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(vidurl)){
-			// URL validation
+			// Valid URL
 		} else {
 			$("#invalidurl").show();
 			return false;
 		}
 		$("#spinner1").show();
-		$.post('class/VideoTitle.php', { url: vidurl }, 
-			function(returnedData){
-				$("#vidtitle").text(returnedData);
-				$("#vidtitle").show();
-		});
-		$.post('class/VideoThumbnail.php', { url: vidurl }, 
-			function(returnedData){
+		$.ajax
+		({
+			type: "GET",
+			url: "class/VideoInfo.php",
+			data: { url: vidurl },
+			dataType: 'json',
+			cache: false,
+			success: function(data)
+			{
+				jQuery.each(data.vidformats, function(index, item) {
+					$('#' + item).attr("style", "display: inline; padding: 5px;");
+				});
+				$("#mp3").attr("style", "display: inline; padding: 5px;");
+				$("#vidtitle").text(data.vidinfo[0]);
+				$("#vidimg").attr("src", data.vidinfo[1]);
 				$("#vidcont").hide();
 				$("#spinner1").hide();
 				$("#url").attr("disabled", "disabled");
-				$("#vidimg").attr("src", returnedData);
+				$("#vidtitle").show();
 				$("#vidthumb").show();
+				$("#formatlbl").show();
+				$("#formatbtns").show();
+				// $("#viddown").show();
 				$("#viddown").show();
 				$("#vidcanc").show();
+			}
 		});
+
 	});
 
 	$("#viddown").click(function() {
 		$("#downloadbar").show();
 		var vidurl = $("#url").val();
-		if ( $("#checkbx").is(':checked') ) {
-			$.post('index.php', { urls: vidurl, audio: "true" }, 
-				function(returnedData){
-			});
-		} else {
-			$.post('index.php', { urls: vidurl }, 
-				function(returnedData){
-			});
-		}
-		var vidtitle = $("#vidtitle").text()
-		var vidtitle2 = vidtitle.replace(/\ /g, '_'); // Replace spaces with underscores
+		var vidfmt = $("form input[name=format]:checked").val()
+		
+		$.post('index.php', { urls: vidurl, format: vidfmt }, 
+			function(returnedData){
+		});
+
 		function checkProgress() {
-			$.post('class/CheckStatus.php', { title: vidtitle2  }, 
-				function(returnedData){
-					if(returnedData === "Exists") {
-						filenameurl = "downloads/" + vidtitle2
+			$.ajax
+			({
+				type: "GET",
+				url: "class/CheckStatus.php",
+				data: { url: vidurl, format: vidfmt },
+				dataType: 'json',
+				cache: false,
+				success: function(data)
+				{
+					//alert("Exists: " + data.exists);
+					//alert("Filename: " + data.filename);
+					if(data.exists === "yes") {
+						filenameurl = "downloads/" + data.filename
 						$("#viddown").hide();
 						$("#vidcanc").hide();
 						$("#downloadbar").hide();
@@ -55,6 +72,7 @@ $(document).ready(function() {
 						$("#downloadready").attr("style", "display: inline; padding: 5px");
 						clearInterval(checkIntervalId);
 					}
+				}
 			});
 		}
 		checkIntervalId = setInterval(checkProgress, 5000);
@@ -87,7 +105,16 @@ $(document).ready(function() {
 		}
 	});
 
+	$(".radiobutton").click(function() {
+		$("#vidlink").hide();
+		$("#vidrestart").hide();
+		$("#downloadready").hide();
+		$("#viddown").show();
+		$("#vidcanc").show();
+	});
+
 	function clearElements() { 
+		$(".radiobutton").hide();
 		$("#vidthumb").hide();
 		$("#viddown").hide();
 		$("#vidcanc").hide();

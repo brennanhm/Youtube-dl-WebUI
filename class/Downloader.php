@@ -5,23 +5,24 @@ class Downloader
 {
 	private $urls = [];
 	private $config = [];
-	private $audio_only = false;
 	private $errors = [];
 	private $download_path = "";
+	private $format = "";
 
-	public function __construct($post, $audio_only)
+	public function __construct($post, $format)
 	{
 		$this->config = require dirname(__DIR__).'/config/config.php';
 		
 		$this->download_path = (new FileHandler())->get_downloads_folder();
-
-		$this->audio_only = $audio_only;
+		$this->format = $format;
 		$this->urls = explode(",", $post);
 
+		/*
 		if(!$this->check_requirements($audio_only))
 		{
 			return;
 		}
+		*/
 
 		foreach ($this->urls as $url)
 		{
@@ -119,6 +120,7 @@ class Downloader
 		}
 	}
 
+	/*
 	private function check_requirements($audio_only)
 	{
 		if($this->is_youtubedl_installed() != 0)
@@ -156,6 +158,7 @@ class Downloader
 		exec("which ".$this->config["extracter"], $out, $r);
 		return $r;
 	}
+	*/
 
 	private function is_valid_url($url)
 	{
@@ -184,23 +187,28 @@ class Downloader
 
 	private function do_download()
 	{
+		/* Build the youtube-dl command */
 		$cmd = "youtube-dl";
 		$cmd .= " -o ".$this->download_path."/";
 		$cmd .= escapeshellarg("%(title)s-%(uploader)s.%(ext)s");
 
-		if($this->audio_only)
-		{
-			$cmd .= " -x ";
-		}
-
-		foreach($this->urls as $url)
-		{
+		foreach($this->urls as $url) {
 			$cmd .= " ".escapeshellarg($url);
 		}
 
-		$cmd .= " --restrict-filenames"; // --restrict-filenames is for specials chars
+		if ($this->format === "mp3") {
+			$cmd .= " -x --audio-format mp3";
+		} else {
+			$cmd .= " -f ".escapeshellarg($this->format);
+		}
+
+		$cmd .= " --restrict-filenames"; // Simplify the filename by replacing spaces and special characters with underscores
 		$cmd .= " > /dev/null & echo $!";
 
+		$message = "Command: ".$cmd;
+		error_log($message);
+
+		/* Execute the command */
 		shell_exec($cmd);
 	}
 }
